@@ -1,0 +1,147 @@
+<html>
+<head>
+<meta charset="utf-8"/>
+<title>BC Hack</title>
+<script src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.css" />
+<script src="//cdnjs.cloudflare.com/ajax/libs/leaflet/1.2.0/leaflet.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/js-sha512/0.8.0/sha512.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/2.3.2/js/bootstrap.min.js"></script>
+<link href="//use.fontawesome.com/releases/v5.0.6/css/all.css" rel="stylesheet"/>
+<script>
+
+$(function(){
+  var hex = '0123Abc';
+  console.log( 'hex = ' + hex );
+  var oct = hex2oct( hex );
+  console.log( 'oct = ' + oct );
+
+  hex = '0123abd';
+  console.log( 'hex = ' + hex );
+  var oct = hex2oct( hex );
+  console.log( 'oct = ' + oct );
+});
+
+function getOctHash( obj ){
+  return hex2oct( getHash( obj ) );
+}
+
+function getHash( obj ){
+  var hash = sha512.create();
+  hash.update( obj );
+
+  return hash.hex();
+}
+
+function hex2oct( hex ){
+  var mod = 0;
+  var digit = 0;
+  var oct = '';
+
+  for( var i = 0; i < hex.length; i ++ ){
+    var c = hex.charCodeAt( i );
+    //console.log( 'i = ' + i + ' -> ' + c );
+    if( c < 65 ){
+      c -= 48;
+    }else if( c >= 97 ){
+      c -= 87;
+    }else{
+      c -= 55;
+    }
+
+    switch( digit ){
+    case 0:
+      var t = ( 14 & c ) / 2;
+      oct += t;
+      mod = 1 & c;
+      digit = 3;
+      break;
+/* digit = 1 で始まることはない
+    case 1:
+      var t = ( 7 & c );
+      oct += t;
+      mod = 0;
+      digit = 0;
+      break;
+*/
+    case 2:
+      var t = ( 8 & c ) / 8 + mod * 2;
+      oct += t;
+      mod = 7 & c;
+
+      //digit = 1;
+      t = mod;
+      oct += t;
+      mod = 0;
+
+      digit = 0;
+      break;
+    case 3:
+      var t = ( 12 & c ) / 4 + mod * 4;
+      oct += t;
+      mod = 3 & c;
+      digit = 2;
+      break;
+    }
+  }
+
+  //. 処理余り
+  switch( digit ){
+  case 2:
+    var t = mod * 2;
+    oct += t;
+    break;
+  case 3:
+    var t = mod * 4;
+    oct += t;
+    break;
+  }
+
+  return oct;
+}
+
+function timestamp2datetime( ts ){
+  if( !ts ){
+    ts = ( new Date() ).getTime();
+  }
+  
+  if( ts ){
+    var dt = new Date( ts );
+    var yyyy = dt.getFullYear();
+    var mm = dt.getMonth() + 1;
+    var dd = dt.getDate();
+    var hh = dt.getHours();
+    var nn = dt.getMinutes();
+    var ss = dt.getSeconds();
+    var ms = dt.getMilliseconds();
+    var datetime = yyyy + '-' + ( mm < 10 ? '0' : '' ) + mm + '-' + ( dd < 10 ? '0' : '' ) + dd
+      + ' ' + ( hh < 10 ? '0' : '' ) + hh + ':' + ( nn < 10 ? '0' : '' ) + nn + ':' + ( ss < 10 ? '0' : '' ) + ss
+      + '.' + ( ms < 10 ? '00' : ( ms < 100 ? '0' : '' ) ) + ms;
+    return datetime;
+  }else{
+    return '';
+  }
+}
+
+</script>
+<style>
+html, body  {
+	width: 100%;
+	height: 100%;
+	padding: 0px;
+	margin: 0px;
+}
+#demoMap {
+	width: 100%;
+	height: 100%;
+}
+#fileUpload {
+	width: 100%;
+	height: 100%;
+}
+</style>
+</head>
+<body>
+</body>
+</html>
